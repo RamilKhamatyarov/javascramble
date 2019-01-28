@@ -3,15 +3,18 @@
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <div th:fragment="header">
-    <nav class="navbar-default navbar-fixed-top">
+    <nav class="navbar-default">
         <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" th:href="@{/}">Notebook</a>
-                <ul class="nav navbar-nav">
-                    <li><a href="#" th:href="@{/new}">New Note</a></li>
-                </ul>
+            <div class="row">
+                <div class="navbar-header navbar-fixed-top">
+                    <a class="navbar-brand" href="#">Scramble</a>
+                </div>
+                <div class="navbar-header navbar-fixed-top">
+                    <a class="navbar-text" href="#" th:href="@{/new}">New scramble note</a>
+                </div>
             </div>
         </div>
     </nav>
+
 </div>
 </html>
