@@ -32,6 +32,12 @@ public class ScrambleNoteController {
         return "index";
     }
 
+    @GetMapping("/sort/{dateWayOfSort}")
+    public String sortByDate(@PathVariable String dateWayOfSort) {
+        this.dateWayOfSort = dateWayOfSort;
+        return "redirect:/";
+    }
+
     @PostMapping("/save")
     public String updateScrambleNote(@RequestParam String message) {
         scrambleService.saveScrambleNote(new ScrambleNote(message));
@@ -39,8 +45,8 @@ public class ScrambleNoteController {
         return "redirect:/";
     }
 
-    @PostMapping("/new")
-    public String newScrambleNote(@RequestParam String message) {
+    @GetMapping("/new")
+    public String newScrambleNote() {
         return "operations/new";
     }
 
@@ -55,12 +61,13 @@ public class ScrambleNoteController {
     public String saveScrambleNote(
         @RequestParam Integer id,
         @RequestParam String message,
-        @RequestParam(value = "done", required = true) boolean done
+        @RequestParam(value = "done", required = false) boolean done
     ){
         scrambleService.updateScrambleNote(id, message, done);
         return "redirect:/";
     }
 
+    @GetMapping("/delete/{id}")
     public String deleteScrambleNote(@PathVariable Integer id) {
         scrambleService.deleteScrambleNote(id);
         return "redirect:/";

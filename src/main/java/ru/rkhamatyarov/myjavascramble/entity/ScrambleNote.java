@@ -10,7 +10,6 @@ public class ScrambleNote
 {
 
     @Id
-    @GeneratedValue
     private int id;
 
     @Column(name = "MESSAGE")
