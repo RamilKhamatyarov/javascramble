@@ -1,11 +1,13 @@
-name: Build and Test Whiteboard
+name: Build and Test JavaScramble
 
 on:
   push:
     branches:
+      - develop
       - main
   pull_request:
     branches:
+      - develop
       - main
 
 jobs:
@@ -28,11 +30,8 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: .
-          KOTLIN_ENABLE: false
+          VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
-          VALIDATE_ALL_CODEBASE: true
-          VALIDATE_GROOVY: false
-          VALIDATE_GO: false
 
       - name: Build the project (compile without tests)
         run: mvn clean compile -DskipTests
