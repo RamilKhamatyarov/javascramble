@@ -6,11 +6,13 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class MyJavaScrambleApplicationTests {
+public final class MyJavaScrambleApplicationTests {
 
-	@Test
-	public void contextLoads() {
-	}
+    /**
+     * Verifies that the Spring application context loads successfully.
+     */
+    @Test
+    public void contextLoads() {
+    }
 
 }
-

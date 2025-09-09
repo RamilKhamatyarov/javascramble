@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 23
         uses: actions/setup-java@v3
@@ -24,14 +26,16 @@ jobs:
           java-version: '23'
           distribution: 'temurin'
 
-      - name: Run Super-Linter (Java)
-        uses: github/super-linter@v5
+      - name: Run Java Linter Only
+        uses: super-linter/super-linter@v8.0.0
         env:
-          DEFAULT_BRANCH: main
+          DEFAULT_BRANCH: develop
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINTER_RULES_PATH: .
-          VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
+          JAVA_CHECKSTYLE_SUPPRESSIONS_FILE: .github/checkstyle/suppressions.xml
+          DISABLE_GITHUB_STATUS_API: true
+          VALIDATE_GIT_COMMIT_HISTORY: false
+          HTTP_TIMEOUT: 30
 
       - name: Build the project (compile without tests)
         run: mvn clean compile -DskipTests
