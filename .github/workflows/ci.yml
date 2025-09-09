@@ -27,11 +27,12 @@ jobs:
           distribution: 'temurin'
 
       - name: Run Java Linter Only
-        uses: super-linter/super-linter@v7.4.0
+        uses: super-linter/super-linter@v8.0.0
         env:
           DEFAULT_BRANCH: develop
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_JAVA: true
+          JAVA_CHECKSTYLE_SUPPRESSIONS_FILE: .github/checkstyle/suppressions.xml
           DISABLE_GITHUB_STATUS_API: true
           VALIDATE_GIT_COMMIT_HISTORY: false
           HTTP_TIMEOUT: 30

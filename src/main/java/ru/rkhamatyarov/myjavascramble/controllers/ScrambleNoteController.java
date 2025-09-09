@@ -12,19 +12,42 @@ import ru.rkhamatyarov.myjavascramble.service.ScrambleService;
 
 import java.util.List;
 
+/**
+ * Controller for Scramble notes pages and CRUD operations.
+ */
 @Controller
-public class ScrambleNoteController {
-    private final static String ASC_DATE_WAY_OF_SORT = "ASC";
-    private final static String DESC_DATE_WAY_OF_SORT = "DESC";
+public final class ScrambleNoteController {
 
+    /**
+     * Date sort order constant for ascending.
+     */
+    private static final String ASC_DATE_WAY_OF_SORT = "ASC";
+
+    /**
+     * Date sort order constant for descending.
+     */
+    private static final String DESC_DATE_WAY_OF_SORT = "DESC";
+
+    /**
+     * Current sort order (ASC or DESC).
+     */
     private String dateWayOfSort = ASC_DATE_WAY_OF_SORT;
 
+    /**
+     * Service for scramble notes operations.
+     */
     @Autowired
-    public ScrambleService scrambleService;
+    private ScrambleService scrambleService;
 
+    /**
+     * List all notes.
+     *
+     * @param model the model to add attributes
+     * @return the view name
+     */
     @GetMapping("/")
-    public String list(Model model) {
-        List<ScrambleNote> scrambleNoteList =  sortScrambleNoteList();
+    public String list(final Model model) {
+        final List<ScrambleNote> scrambleNoteList = sortScrambleNoteList();
 
         model.addAttribute("notes", scrambleNoteList);
         model.addAttribute("sort", dateWayOfSort);
@@ -32,49 +55,94 @@ public class ScrambleNoteController {
         return "index";
     }
 
+    /**
+     * Change sorting order and redirect to list.
+     *
+     * @param dateWayOfSortParam sort order parameter
+     * @return redirect to list
+     */
     @GetMapping("/sort/{dateWayOfSort}")
-    public String sortByDate(@PathVariable String dateWayOfSort) {
-        this.dateWayOfSort = dateWayOfSort;
+    public String sortByDate(@PathVariable final String dateWayOfSortParam) {
+        this.dateWayOfSort = dateWayOfSortParam;
         return "redirect:/";
     }
 
+    /**
+     * Create a new note.
+     *
+     * @param message the note message
+     * @return redirect to list
+     */
     @PostMapping("/save")
-    public String updateScrambleNote(@RequestParam String message) {
+    public String updateScrambleNote(@RequestParam final String message) {
         scrambleService.saveScrambleNote(new ScrambleNote(message));
-
         return "redirect:/";
     }
 
+    /**
+     * Show new note form.
+     *
+     * @return the view name
+     */
     @GetMapping("/new")
     public String newScrambleNote() {
         return "operations/new";
     }
 
+    /**
+     * Show edit form for a note.
+     *
+     * @param id    the note id
+     * @param model the model to add attributes
+     * @return the view name
+     */
     @GetMapping("/edit/{id}")
-    public String saveScrambleNote(@PathVariable Integer id, Model model) {
-        ScrambleNote scrambleNote = scrambleService.getNoteById(id);
+    public String saveScrambleNote(
+            @PathVariable final Long id,
+            final Model model
+    ) {
+        final ScrambleNote scrambleNote = scrambleService.getNoteById(id);
         model.addAttribute("note", scrambleNote);
         return "operations/edit";
     }
 
+    /**
+     * Update existing note.
+     *
+     * @param id      the note id
+     * @param message the note message
+     * @param done    completion status
+     * @return redirect to list
+     */
     @PostMapping("/update")
     public String saveScrambleNote(
-        @RequestParam Integer id,
-        @RequestParam String message,
-        @RequestParam(value = "done", required = false) boolean done
-    ){
+            @RequestParam final Long id,
+            @RequestParam final String message,
+            @RequestParam(value = "done", required = false) final boolean done
+    ) {
         scrambleService.updateScrambleNote(id, message, done);
         return "redirect:/";
     }
 
+    /**
+     * Delete note by id.
+     *
+     * @param id the note id
+     * @return redirect to list
+     */
     @GetMapping("/delete/{id}")
-    public String deleteScrambleNote(@PathVariable Integer id) {
+    public String deleteScrambleNote(@PathVariable final Long id) {
         scrambleService.deleteScrambleNote(id);
         return "redirect:/";
     }
 
+    /**
+     * Return list sorted according to current sort order.
+     *
+     * @return sorted list of notes
+     */
     private List<ScrambleNote> sortScrambleNoteList() {
-        List<ScrambleNote> scrambleNoteList = null;
+        List<ScrambleNote> scrambleNoteList;
 
         switch (dateWayOfSort) {
             case ASC_DATE_WAY_OF_SORT:
@@ -82,6 +150,10 @@ public class ScrambleNoteController {
                 break;
             case DESC_DATE_WAY_OF_SORT:
                 scrambleNoteList = scrambleService.findAllByDateDescOrder();
+                break;
+            default:
+                scrambleNoteList = scrambleService.findAllByDateAscOrder();
+                break;
         }
         return scrambleNoteList;
     }
