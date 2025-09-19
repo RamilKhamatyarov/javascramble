@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Main Spring Boot application for MyJavaScramble.
  */
 @SpringBootApplication
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class MyJavaScrambleApplication {
 
     // Private constructor to prevent instantiation
