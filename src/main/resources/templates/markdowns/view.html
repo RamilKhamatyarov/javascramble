@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head">
+    <title>Markdown File</title>
+    <style>
+        .markdown-content {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+            margin: 20px 0;
+        }
+        .file-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="page-header">
+        <h1 th:text="${filename}">Markdown File</h1>
+    </div>
+
+    <div class="file-info">
+        <strong>File:</strong> <span th:text="${filename}"></span> |
+        <a th:href="@{/markdown}" class="btn btn-xs btn-default">Back to Markdown Files</a>
+        <a th:href="@{/}" class="btn btn-xs btn-default">Back to Notes</a>
+    </div>
+
+    <div class="markdown-content" th:text="${content}">
+        Markdown content will be displayed here...
+    </div>
+
+    <div class="text-center">
+        <a th:href="@{/markdown}" class="btn btn-default">Back to Markdown Files</a>
+        <a th:href="@{/}" class="btn btn-primary">Back to Notes</a>
+    </div>
+
+    <div th:replace="fragments/footer :: footer"></div>
+</div>
+</body>
+</html>

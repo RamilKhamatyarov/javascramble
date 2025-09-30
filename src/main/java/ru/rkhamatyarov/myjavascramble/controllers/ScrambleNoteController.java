@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.rkhamatyarov.myjavascramble.entity.MarkdownFile;
 import ru.rkhamatyarov.myjavascramble.entity.ScrambleNote;
+import ru.rkhamatyarov.myjavascramble.service.MarkdownService;
 import ru.rkhamatyarov.myjavascramble.service.ScrambleService;
 
 import java.util.List;
@@ -38,6 +40,12 @@ public final class ScrambleNoteController {
      */
     @Autowired
     private ScrambleService scrambleService;
+
+    /**
+     * Service for searching markdown files
+     */
+    @Autowired
+    private MarkdownService markdownService;
 
     /**
      * List all notes.
@@ -137,24 +145,47 @@ public final class ScrambleNoteController {
     }
 
     /**
+     * List all markdown files.
+     *
+     * @param model the model to add attributes
+     * @return the view name
+     */
+    @GetMapping("/markdown")
+    public String listMarkdownFiles(final Model model) {
+        final List<MarkdownFile> markdownFiles = markdownService.getAllMarkdownFiles();
+        model.addAttribute("markdownFiles", markdownFiles);
+        return "markdowns/list";
+    }
+
+    /**
+     * Show markdown file content.
+     *
+     * @param filename the markdown filename
+     * @param model    the model to add attributes
+     * @return the view name
+     */
+    @GetMapping("/markdown/{filename}")
+    public String showMarkdownFile(
+            @PathVariable final String filename,
+            final Model model
+    ) {
+        final String content = markdownService.getMarkdownFileContent(filename);
+        model.addAttribute("filename", filename);
+        model.addAttribute("content", content);
+        return "markdowns/view";
+    }
+
+    /**
      * Return list sorted according to current sort order.
      *
      * @return sorted list of notes
      */
     private List<ScrambleNote> sortScrambleNoteList() {
-        List<ScrambleNote> scrambleNoteList;
 
-        switch (dateWayOfSort) {
-            case ASC_DATE_WAY_OF_SORT:
-                scrambleNoteList = scrambleService.findAllByDateAscOrder();
-                break;
-            case DESC_DATE_WAY_OF_SORT:
-                scrambleNoteList = scrambleService.findAllByDateDescOrder();
-                break;
-            default:
-                scrambleNoteList = scrambleService.findAllByDateAscOrder();
-                break;
-        }
-        return scrambleNoteList;
+        return switch (dateWayOfSort) {
+            case ASC_DATE_WAY_OF_SORT -> scrambleService.findAllByDateAscOrder();
+            case DESC_DATE_WAY_OF_SORT -> scrambleService.findAllByDateDescOrder();
+            default -> scrambleService.findAllByDateAscOrder();
+        };
     }
 }
