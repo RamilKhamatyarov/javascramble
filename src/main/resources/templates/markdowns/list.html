@@ -9,14 +9,14 @@
     <div th:replace="fragments/header :: header"></div>
 
     <div class="page-header">
-        <h1>Markdown Files</h1>
+        <h1>Markdown Files (Recursive Search - Max 5 Levels)</h1>
     </div>
 
     <div th:if="${not #lists.isEmpty(markdownFiles)}">
         <table class="table table-bordered table-hover horizontal-align">
             <thead>
             <tr>
-                <th style="width: 50%">Filename</th>
+                <th style="width: 50%">File Path</th>
                 <th style="width: 20%">Size</th>
                 <th style="width: 30%">Last Modified</th>
             </tr>
@@ -24,8 +24,8 @@
             <tbody>
             <tr th:each="file : ${markdownFiles}">
                 <td>
-                    <a th:href="@{'/markdown/{filename}'(filename=${file.filename})}"
-                       th:text="${file.filename}">filename.md</a>
+                    <a th:href="@{'/markdown/{filepath}'(filepath=${file.relativePath})}"
+                       th:text="${file.relativePath}">path/filename.md</a>
                 </td>
                 <td th:text="${#numbers.formatDecimal(file.fileSize / 1024, 1, 2) + ' KB'}" style="text-align: center">
                     size
@@ -39,11 +39,12 @@
     </div>
 
     <div th:if="${#lists.isEmpty(markdownFiles)}" class="alert alert-info">
-        No markdown files found in the configured directory.
+        No markdown files found in the configured directory (searched up to 5 levels deep).
     </div>
 
     <div class="text-center">
-        <a th:href="@{/}" class="btn btn-default">Back to Notes</a>
+        <a th:href="@{/images}" class="btn btn-default">View Image Files</a>
+        <a th:href="@{/}" class="btn btn-primary">Back to Notes</a>
     </div>
 
     <div th:replace="fragments/footer :: footer"></div>

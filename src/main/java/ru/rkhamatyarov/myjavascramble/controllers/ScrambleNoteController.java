@@ -1,5 +1,11 @@
 package ru.rkhamatyarov.myjavascramble.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.commonmark.Extension;
+import org.commonmark.ext.gfm.tables.TablesExtension;
+import org.commonmark.ext.autolink.AutolinkExtension;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +18,9 @@ import ru.rkhamatyarov.myjavascramble.entity.ScrambleNote;
 import ru.rkhamatyarov.myjavascramble.service.MarkdownService;
 import ru.rkhamatyarov.myjavascramble.service.ScrambleService;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,7 +51,7 @@ public final class ScrambleNoteController {
     private ScrambleService scrambleService;
 
     /**
-     * Service for searching markdown files
+     * Service for searching markdown files.
      */
     @Autowired
     private MarkdownService markdownService;
@@ -56,10 +65,8 @@ public final class ScrambleNoteController {
     @GetMapping("/")
     public String list(final Model model) {
         final List<ScrambleNote> scrambleNoteList = sortScrambleNoteList();
-
         model.addAttribute("notes", scrambleNoteList);
         model.addAttribute("sort", dateWayOfSort);
-
         return "index";
     }
 
@@ -126,7 +133,8 @@ public final class ScrambleNoteController {
     public String saveScrambleNote(
             @RequestParam final Long id,
             @RequestParam final String message,
-            @RequestParam(value = "done", required = false) final boolean done
+            @RequestParam(value = "done", required = false)
+            final boolean done
     ) {
         scrambleService.updateScrambleNote(id, message, done);
         return "redirect:/";
@@ -152,27 +160,196 @@ public final class ScrambleNoteController {
      */
     @GetMapping("/markdown")
     public String listMarkdownFiles(final Model model) {
-        final List<MarkdownFile> markdownFiles = markdownService.getAllMarkdownFiles();
+        final List<MarkdownFile> markdownFiles =
+                markdownService.getAllMarkdownFiles();
         model.addAttribute("markdownFiles", markdownFiles);
         return "markdowns/list";
     }
 
     /**
-     * Show markdown file content.
+     * Show markdown file content by relative filepath.
      *
-     * @param filename the markdown filename
+     * @param filepath the markdown filepath (can include subdirectories)
      * @param model    the model to add attributes
      * @return the view name
      */
-    @GetMapping("/markdown/{filename}")
+    @GetMapping("/markdown/{filepath:.+}")
     public String showMarkdownFile(
-            @PathVariable final String filename,
+            @PathVariable final String filepath,
             final Model model
     ) {
-        final String content = markdownService.getMarkdownFileContent(filename);
-        model.addAttribute("filename", filename);
-        model.addAttribute("content", content);
+        try {
+            // Decode URL-encoded filepath
+            String decodedFilepath = URLDecoder.decode(
+                    filepath, StandardCharsets.UTF_8
+            );
+
+            final String content =
+                    markdownService.getMarkdownFileContent(decodedFilepath);
+
+            String renderedContent;
+            if (content != null && !content.trim().isEmpty()) {
+                try {
+                    List<Extension> extensions = Arrays.asList(
+                            TablesExtension.create(),
+                            AutolinkExtension.create()
+                    );
+
+                    Parser parser = Parser.builder()
+                            .extensions(extensions)
+                            .build();
+
+                    HtmlRenderer renderer = HtmlRenderer.builder()
+                            .extensions(extensions)
+                            .build();
+
+                    var document = parser.parse(content);
+                    renderedContent = renderer.render(document);
+
+                } catch (Exception e) {
+                    renderedContent = "<div class='alert alert-danger'>"
+                            + "Error rendering markdown: "
+                            + e.getMessage()
+                            + "</div>";
+                }
+            } else {
+                renderedContent =
+                        "<div class='alert alert-info'>No content available."
+                                + "</div>";
+            }
+
+            model.addAttribute("filename", decodedFilepath);
+            model.addAttribute("content", content);
+            model.addAttribute("renderedContent", renderedContent);
+        } catch (Exception e) {
+            model.addAttribute("filename", filepath);
+            model.addAttribute("error", "Error loading markdown file: "
+                    + e.getMessage());
+        }
+
         return "markdowns/view";
+    }
+
+    /**
+     * List all image files.
+     *
+     * @param model the model to add attributes
+     * @return the view name
+     */
+    @GetMapping("/images")
+    public String listImageFiles(final Model model) {
+        final List<MarkdownFile> imageFiles =
+                markdownService.getAllImageFiles();
+        model.addAttribute("imageFiles", imageFiles);
+        return "images/list";
+    }
+
+    /**
+     * Serve image file.
+     *
+     * @param filepath the image filepath
+     * @param response the HTTP response
+     */
+    @GetMapping("/images/{filepath:.+}")
+    public void serveImageFile(
+            @PathVariable final String filepath,
+            final HttpServletResponse response
+    ) {
+        try {
+            // Decode URL-encoded filepath
+            String decodedFilepath = URLDecoder.decode(
+                    filepath, StandardCharsets.UTF_8
+            );
+
+            byte[] imageData =
+                    markdownService.getImageFileContent(decodedFilepath);
+
+            if (imageData.length == 0) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            String contentType = getContentType(decodedFilepath);
+            response.setContentType(contentType);
+            response.setHeader("Cache-Control", "max-age=3600");
+            response.getOutputStream().write(imageData);
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Show individual image view page.
+     *
+     * @param filepath the image filepath
+     * @param model    the model to add attributes
+     * @return the view name
+     */
+    @GetMapping("/image-view/{filepath:.+}")
+    public String viewImageFile(
+            @PathVariable final String filepath,
+            final Model model
+    ) {
+        try {
+            // Decode URL-encoded filepath
+            String decodedFilepath = URLDecoder.decode(
+                    filepath, StandardCharsets.UTF_8
+            );
+
+            byte[] imageData =
+                    markdownService.getImageFileContent(decodedFilepath);
+            if (imageData.length == 0) {
+                model.addAttribute("filename", decodedFilepath);
+                model.addAttribute(
+                        "error",
+                        "Image file not found or inaccessible: "
+                                + decodedFilepath
+                );
+                return "images/view";
+            }
+
+            MarkdownFile fileInfo = markdownService.getAllImageFiles()
+                    .stream()
+                    .filter(file -> file.relativePath()
+                            .equals(decodedFilepath))
+                    .findFirst()
+                    .orElse(null);
+
+            model.addAttribute("filename", decodedFilepath);
+            model.addAttribute("fileInfo", fileInfo);
+
+        } catch (Exception e) {
+            model.addAttribute("filename", filepath);
+            model.addAttribute("error", "Error loading image: "
+                    + e.getMessage());
+        }
+
+        return "images/view";
+    }
+
+    /**
+     * Determine content type based on file extension.
+     *
+     * @param filename the filename to check
+     * @return the MIME content type
+     */
+    private String getContentType(final String filename) {
+        String lowerFilename = filename.toLowerCase();
+        if (lowerFilename.endsWith(".png")) {
+            return "image/png";
+        } else if (lowerFilename.endsWith(".jpg")
+                || lowerFilename.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (lowerFilename.endsWith(".gif")) {
+            return "image/gif";
+        } else if (lowerFilename.endsWith(".bmp")) {
+            return "image/bmp";
+        } else if (lowerFilename.endsWith(".webp")) {
+            return "image/webp";
+        } else {
+            return "application/octet-stream";
+        }
     }
 
     /**
@@ -183,8 +360,10 @@ public final class ScrambleNoteController {
     private List<ScrambleNote> sortScrambleNoteList() {
 
         return switch (dateWayOfSort) {
-            case ASC_DATE_WAY_OF_SORT -> scrambleService.findAllByDateAscOrder();
-            case DESC_DATE_WAY_OF_SORT -> scrambleService.findAllByDateDescOrder();
+            case ASC_DATE_WAY_OF_SORT ->
+                    scrambleService.findAllByDateAscOrder();
+            case DESC_DATE_WAY_OF_SORT ->
+                    scrambleService.findAllByDateDescOrder();
             default -> scrambleService.findAllByDateAscOrder();
         };
     }
