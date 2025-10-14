@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Configuration for serving static image resources.
  */
 @Configuration
-public final class StaticResourceConfiguration implements WebMvcConfigurer {
+public class StaticResourceConfiguration implements WebMvcConfigurer {
 
     /**
      * Add resource handlers for serving images.
