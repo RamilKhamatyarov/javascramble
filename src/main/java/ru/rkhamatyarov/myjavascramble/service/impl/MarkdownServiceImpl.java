@@ -50,8 +50,8 @@ public final class MarkdownServiceImpl implements MarkdownService {
             if (!Files.exists(directoryPath)
                     || !Files.isDirectory(directoryPath)) {
                 throw new IllegalArgumentException(
-                        "Markdown directory does not exist or is not a " +
-                                "directory: " + markdownDirectory
+                        "Markdown directory does not exist or is not a "
+                                + "directory: " + markdownDirectory
                 );
             }
 
@@ -64,8 +64,8 @@ public final class MarkdownServiceImpl implements MarkdownService {
 
         } catch (Exception e) {
             throw new RuntimeException(
-                    "Error reading markdown files from directory: " +
-                            markdownDirectory, e
+                    "Error reading markdown files from directory: "
+                            + markdownDirectory, e
             );
         }
     }
@@ -84,8 +84,8 @@ public final class MarkdownServiceImpl implements MarkdownService {
             if (!Files.exists(directoryPath)
                     || !Files.isDirectory(directoryPath)) {
                 throw new IllegalArgumentException(
-                        "Markdown directory does not exist or is not a " +
-                                "directory: " + markdownDirectory
+                        "Markdown directory does not exist or is not a "
+                                + "directory: " + markdownDirectory
                 );
             }
 
@@ -98,8 +98,8 @@ public final class MarkdownServiceImpl implements MarkdownService {
 
         } catch (Exception e) {
             throw new RuntimeException(
-                    "Error reading image files from directory: " +
-                            markdownDirectory, e
+                    "Error reading image files from directory: "
+                            + markdownDirectory, e
             );
         }
     }
@@ -216,7 +216,8 @@ public final class MarkdownServiceImpl implements MarkdownService {
 
         } catch (Exception e) {
             throw new RuntimeException(
-                    "Error reading markdown file: " + filepath, e
+                    "Error reading markdown file: "
+                            + filepath, e
             );
         }
     }
