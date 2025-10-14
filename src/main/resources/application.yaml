@@ -1,0 +1,36 @@
+app:
+  env: ${DEFAULT_ENV:dev}
+  name: "Scramble Application"
+  markdown:
+    directory: ${APP_MARKDOWN_DIRECTORY:.}
+  version: "1.0.0"
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:hsqldb:mem:scrambledb}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.hsqldb.jdbcDriver}
+
+  jpa:
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    hibernate:
+      ddl-auto: ${SPRING_JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        default_schema: ${SPRING_JPA_DEFAULT_SCHEMA:SCRAMBLE}
+
+  sql:
+    init:
+      schema-locations: ${SPRING_SQL_SCHEMA_LOCATIONS:classpath:schema.sql}
+      data-locations: ${SPRING_SQL_DATA_LOCATIONS:classpath:data.sql}
+
+  profiles:
+    active: ${DEFAULT_ENV:dev}
+
+
+logging:
+  level:
+    ru.rkhamatyarov.myjavascramble: ${APP_LOGGING_LEVEL:INFO}
+    org.hibernate.SQL: ${HIBERNATE_SQL_LOG:DEBUG}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${HIBERNATE_PARAM_LOG:TRACE}

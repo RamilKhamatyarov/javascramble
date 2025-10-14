@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head">
+    <title>Image File</title>
+    <style>
+        .image-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .image-content {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .file-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .image-details {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .image-metadata {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 10px 20px;
+            margin-top: 10px;
+        }
+        .metadata-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .metadata-value {
+            color: #212529;
+        }
+        .image-actions {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .zoom-controls {
+            margin: 10px 0;
+        }
+        .zoom-btn {
+            margin: 0 5px;
+        }
+        .error-alert {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="page-header">
+        <h1 th:text="${filename}">Image File</h1>
+    </div>
+
+    <div class="file-info">
+        <strong>File:</strong> <span th:text="${filename}"></span> |
+        <a th:href="@{/images}" class="btn btn-xs btn-default">Back to Image Files</a>
+        <a th:href="@{/markdown}" class="btn btn-xs btn-default">View Markdown</a>
+        <a th:href="@{/}" class="btn btn-xs btn-default">Back to Notes</a>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger error-alert">
+        <strong>Error:</strong> <span th:text="${error}"></span>
+    </div>
+
+    <div th:unless="${error}" class="image-container">
+        <img th:src="@{'/images/{filepath}'(filepath=${filename})}"
+             th:alt="${filename}"
+             class="image-content"
+             id="imageView"
+             onerror="this.style.display='none'; document.getElementById('imageError').style.display='block';"/>
+
+        <div id="imageError" class="alert alert-warning" style="display: none;">
+            <strong>Warning:</strong> Failed to load image. The file may not exist or may be corrupted.
+        </div>
+    </div>
+
+    <div th:unless="${error}" class="image-actions text-center">
+        <div class="zoom-controls">
+            <button class="btn btn-sm btn-outline-secondary zoom-btn" onclick="zoomImage(0.8)">Zoom Out</button>
+            <button class="btn btn-sm btn-outline-secondary zoom-btn" onclick="zoomImage(1)">Reset</button>
+            <button class="btn btn-sm btn-outline-secondary zoom-btn" onclick="zoomImage(1.2)">Zoom In</button>
+            <button class="btn btn-sm btn-outline-primary zoom-btn" onclick="downloadImage()">Download</button>
+        </div>
+    </div>
+
+    <div th:if="${fileInfo != null and !error}" class="image-details">
+        <strong>File Details:</strong>
+        <div class="image-metadata">
+            <span class="metadata-label">Filename:</span>
+            <span class="metadata-value" th:text="${fileInfo.filename()}"></span>
+
+            <span class="metadata-label">Relative Path:</span>
+            <span class="metadata-value" th:text="${fileInfo.relativePath()}"></span>
+
+            <span class="metadata-label">Size:</span>
+            <span class="metadata-value" th:text="${fileInfo.getFormattedFileSize()}"></span>
+
+            <span class="metadata-label">Last Modified:</span>
+            <span class="metadata-value" th:text="${#temporals.format(fileInfo.lastModified(), 'EEE, d MMM yyyy HH:mm')}"></span>
+
+            <span class="metadata-label">Full Path:</span>
+            <span class="metadata-value" th:text="${fileInfo.filePath()}" style="word-break: break-all;"></span>
+        </div>
+    </div>
+
+    <div th:if="${fileInfo == null and error == null}" class="alert alert-info image-details">
+        <strong>Note:</strong> File metadata not available. The file exists but additional information could not be loaded.
+    </div>
+
+    <div class="text-center" style="margin-top: 20px;">
+        <a th:href="@{/images}" class="btn btn-default">Back to Image Files</a>
+        <a th:href="@{/markdown}" class="btn btn-info">View Markdown Files</a>
+        <a th:href="@{/}" class="btn btn-primary">Back to Notes</a>
+    </div>
+
+    <div th:replace="fragments/footer :: footer"></div>
+</div>
+
+<script>
+    let currentScale = 1;
+
+    function zoomImage(scale) {
+        const image = document.getElementById('imageView');
+        if (!image) return;
+
+        if (scale === 1) {
+            currentScale = 1;
+            image.style.transform = 'scale(1)';
+        } else {
+            currentScale *= scale;
+            // Limit zoom range
+            if (currentScale < 0.1) currentScale = 0.1;
+            if (currentScale > 10) currentScale = 10;
+            image.style.transform = `scale(${currentScale})`;
+        }
+
+        // Update zoom indicator
+        updateZoomIndicator();
+    }
+
+    function updateZoomIndicator() {
+        const indicator = document.getElementById('zoomIndicator') || createZoomIndicator();
+        indicator.textContent = Math.round(currentScale * 100) + '%';
+    }
+
+    function createZoomIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'zoomIndicator';
+        indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 3px; z-index: 1000;';
+        document.body.appendChild(indicator);
+        return indicator;
+    }
+
+    function downloadImage() {
+        const image = document.getElementById('imageView');
+        if (!image) {
+            alert('Image not available for download.');
+            return;
+        }
+
+        try {
+            const link = document.createElement('a');
+            link.href = image.src;
+            link.download = image.alt || 'image';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            alert('Download failed: ' + e.message);
+        }
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.key === '+' || e.key === '=') {
+            e.preventDefault();
+            zoomImage(1.2);
+        } else if (e.key === '-') {
+            e.preventDefault();
+            zoomImage(0.8);
+        } else if (e.key === '0') {
+            e.preventDefault();
+            zoomImage(1);
+        } else if (e.key === 'd' || e.key === 'D') {
+            e.preventDefault();
+            downloadImage();
+        }
+    });
+
+    // Initialize zoom indicator
+    document.addEventListener('DOMContentLoaded', function() {
+        updateZoomIndicator();
+    });
+</script>
+</body>
+</html>
