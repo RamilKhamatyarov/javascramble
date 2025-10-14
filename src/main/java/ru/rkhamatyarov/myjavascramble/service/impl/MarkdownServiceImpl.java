@@ -208,7 +208,7 @@ public final class MarkdownServiceImpl implements MarkdownService {
 
             if (!normalizedFilePath.startsWith(normalizedMarkdownDir)) {
                 throw new SecurityException(
-                        "Access to file outside markdown directory is not allowed"
+                        "Access to file outside markdown directory not allowed"
                 );
             }
 
@@ -250,7 +250,7 @@ public final class MarkdownServiceImpl implements MarkdownService {
 
             if (!normalizedFilePath.startsWith(normalizedMarkdownDir)) {
                 throw new SecurityException(
-                        "Access to file outside markdown directory is not allowed"
+                        "Access to file outside markdown directory not allowed"
                 );
             }
 
